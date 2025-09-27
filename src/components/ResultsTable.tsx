@@ -23,6 +23,7 @@ export default function ResultsTable({ parsedText }: { parsedText: Row[] }) {
                 <th className="border border-black p-1 text-left">
                   Stakeholder
                 </th>
+                <th className="border border-black p-1 text-left">Sentiment</th>
               </tr>
             </thead>
             <tbody>
@@ -37,6 +38,9 @@ export default function ResultsTable({ parsedText }: { parsedText: Row[] }) {
                   </td>
                   <td className="border border-black p-1">{row.text}</td>
                   <td className="border border-black p-1">{row.stakeholder}</td>
+                  <td className="border border-black p-1">
+                    {row.sentiment?.label.toLowerCase()}
+                  </td>
                 </tr>
               ))}
             </tbody>

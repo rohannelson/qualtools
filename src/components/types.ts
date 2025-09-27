@@ -1,9 +1,11 @@
+import type { TextClassificationSingle } from "@xenova/transformers";
+
 export type Row = {
   id: number;
   sentenceIndex: number;
   text: string;
   stakeholder: string;
-  sentiment?: "negative" | "positive";
+  sentiment?: TextClassificationSingle;
   embedding?: number[];
 };
 

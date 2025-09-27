@@ -3,8 +3,15 @@ import { RESPONSES } from "./consts";
 import { Status, type Row } from "./types";
 import nlp from "compromise";
 import ResultsTable from "./ResultsTable";
-import type { EmbeddingsWorkerResponse } from "./embeddingsWorker";
+import type {
+  EmbeddingsWorkerMessage,
+  EmbeddingsWorkerResponse,
+} from "./embeddingsWorker";
 import { cos_sim, pipeline, type Tensor } from "@xenova/transformers";
+import type {
+  SentimentWorkerMessage,
+  SentimentWorkerResponse,
+} from "./sentimentWorker";
 
 export default function ScatterTool() {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -51,7 +58,10 @@ export default function ScatterTool() {
         type: "module",
       }
     );
-    embeddingsWorker.postMessage({ responses: nextParsedText });
+    const embeddingsMessage: EmbeddingsWorkerMessage = {
+      responses: nextParsedText,
+    };
+    embeddingsWorker.postMessage(embeddingsMessage);
 
     embeddingsWorker.onmessage = async (
       e: MessageEvent<EmbeddingsWorkerResponse>
@@ -92,9 +102,32 @@ export default function ScatterTool() {
         }
       }
       setParsedText([...nextParsedText]);
+
+      //Sentiment analysis
+      setStatus(Status.SENTIMENT);
+      const sentimentWorker = new Worker(
+        new URL("./sentimentWorker.ts", import.meta.url),
+        {
+          type: "module",
+        }
+      );
+      const sentimentMessage: SentimentWorkerMessage = {
+        responses: nextParsedText,
+      };
+      sentimentWorker.postMessage(sentimentMessage);
+
+      sentimentWorker.onmessage = (
+        e: MessageEvent<SentimentWorkerResponse>
+      ) => {
+        const { sentiments } = e.data;
+        nextParsedText.forEach((response, i) => {
+          response.sentiment = sentiments[i];
+        });
+        setParsedText([...nextParsedText]);
+        sentimentWorker.terminate();
+      };
     };
   }
-
   return (
     <div className="m-8">
       <h1 className="text-2xl font-bold mb-2">Open Text Qual Tool</h1>
