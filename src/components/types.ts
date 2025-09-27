@@ -16,4 +16,13 @@ export enum Status {
   MERGING = "Validating response splits",
   SENTIMENT = "Analyzing sentiment",
   MAPPING = "Plotting on scattergraph",
+  COMPLETE = "Processing complete!",
+  ERROR = "Error",
+}
+
+export interface Point {
+  id: number;
+  text: string;
+  x: number;
+  y: number;
 }

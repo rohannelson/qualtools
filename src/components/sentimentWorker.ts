@@ -1,8 +1,4 @@
-import {
-  pipeline,
-  type TextClassificationOutput,
-  type TextClassificationSingle,
-} from "@xenova/transformers";
+import { pipeline, type TextClassificationOutput } from "@xenova/transformers";
 import type { Row } from "./types";
 import { chunkArray } from "../lib/utils";
 

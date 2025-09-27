@@ -1,22 +1,24 @@
 import { useRef, useState } from "react";
 import { RESPONSES } from "./consts";
-import { Status, type Row } from "./types";
+import { Status, type Point, type Row } from "./types";
 import nlp from "compromise";
 import ResultsTable from "./ResultsTable";
 import type {
   EmbeddingsWorkerMessage,
   EmbeddingsWorkerResponse,
 } from "./embeddingsWorker";
-import { cos_sim, pipeline, type Tensor } from "@xenova/transformers";
-import type {
-  SentimentWorkerMessage,
-  SentimentWorkerResponse,
-} from "./sentimentWorker";
+import { cos_sim, pipeline } from "@xenova/transformers";
+import type { ReductionWorkerMessage } from "./reductionWorker";
+import ScatterGraph from "./ScatterGraph";
+import useSentiment from "./useSentiment";
 
 export default function ScatterTool() {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [status, setStatus] = useState<Status>(Status.PENDING);
   const [parsedText, setParsedText] = useState<Row[]>([]);
+  const [embeddings2D, setEmbeddings2D] = useState<Point[]>([]);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [statusError, setStatusError] = useState<string>("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -103,50 +105,100 @@ export default function ScatterTool() {
       }
       setParsedText([...nextParsedText]);
 
-      //Sentiment analysis
-      setStatus(Status.SENTIMENT);
-      const sentimentWorker = new Worker(
-        new URL("./sentimentWorker.ts", import.meta.url),
+      //Reduce to 2D for scattergraph
+      setStatus(Status.MAPPING);
+      const reductionWorker = new Worker(
+        new URL("./reductionWorker.ts", import.meta.url),
         {
           type: "module",
         }
       );
-      const sentimentMessage: SentimentWorkerMessage = {
-        responses: nextParsedText,
-      };
-      sentimentWorker.postMessage(sentimentMessage);
 
-      sentimentWorker.onmessage = (
-        e: MessageEvent<SentimentWorkerResponse>
-      ) => {
-        const { sentiments } = e.data;
-        nextParsedText.forEach((response, i) => {
-          response.sentiment = sentiments[i];
-        });
-        setParsedText([...nextParsedText]);
-        sentimentWorker.terminate();
+      //Come back and validate that the embeddings aren't undefined...
+      const reductionMessage: ReductionWorkerMessage = {
+        embeddings: nextParsedText.map((row) => row.embedding!),
+      };
+      reductionWorker.postMessage(reductionMessage);
+
+      reductionWorker.onmessage = (e) => {
+        const { coords, error } = e.data;
+
+        if (error) {
+          console.error("UMAP Worker error:", error);
+          setStatus(Status.ERROR);
+          reductionWorker.terminate();
+          return;
+        }
+
+        setEmbeddings2D(
+          coords.map((pt: number[], i: number) => ({
+            id: nextParsedText[i].id,
+            text: nextParsedText[i].text,
+            x: pt[0],
+            y: pt[1],
+          }))
+        );
+        setStatus(Status.COMPLETE);
+        reductionWorker.terminate();
       };
     };
   }
+
+  const getSentiment = useSentiment({
+    setStatus,
+    parsedText,
+    setParsedText,
+  });
   return (
     <div className="m-8">
-      <h1 className="text-2xl font-bold mb-2">Open Text Qual Tool</h1>
+      <div className="grid grid-cols-3 gap-4 min-h-screen">
+        <div>
+          <h1 className="text-2xl font-bold mb-2">Open Text Qual Tool</h1>
+          <form onSubmit={handleSubmit} className="flex flex-col mb-4">
+            <textarea
+              ref={textareaRef}
+              className="h-36 border border-gray-400 rounded-md px-2 py-1 mb-2"
+              placeholder="Paste open text responses here"
+            />
+            <div className="flex gap-4">
+              <button
+                type="submit"
+                className="px-4 py-2 bg-blue-500 text-white rounded w-[120px]"
+              >
+                Submit
+              </button>
+              <button
+                type="button"
+                onClick={getSentiment}
+                className="px-4 py-2 bg-blue-500 text-white rounded w-[160px]"
+              >
+                Get sentiment
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedIds(new Set())}
+                className="px-2 py-1 bg-gray-300 rounded text-sm hover:bg-gray-400"
+              >
+                Deselect All
+              </button>
+            </div>
+            <p className="text-sm mt-1">
+              {status}
+              {status === Status.ERROR && statusError}
+            </p>
+          </form>
 
-      <form onSubmit={handleSubmit} className="flex flex-col mb-4">
-        <textarea
-          ref={textareaRef}
-          className="h-48 w-[600px] border border-gray-400 rounded-md px-2 py-1 mb-2"
-          placeholder="Paste open text responses here"
-        />
-        <button
-          type="submit"
-          className="px-4 py-2 bg-blue-500 text-white rounded w-[120px]"
-        >
-          Submit
-        </button>
-        <p className="text-sm mt-1">{status}</p>
-      </form>
-      <ResultsTable parsedText={parsedText} />
+          <ResultsTable parsedText={parsedText} selectedIds={selectedIds} />
+        </div>
+        <div className="col-span-2">
+          <ScatterGraph
+            parsedText={parsedText}
+            embeddings2D={embeddings2D}
+            selectedIds={selectedIds}
+            setSelectedIds={setSelectedIds}
+          />
+        </div>
+      </div>
     </div>
   );
 }

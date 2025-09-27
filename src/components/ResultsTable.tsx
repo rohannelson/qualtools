@@ -1,10 +1,16 @@
 import type { Row } from "./types";
 
-export default function ResultsTable({ parsedText }: { parsedText: Row[] }) {
+export default function ResultsTable({
+  parsedText,
+  selectedIds,
+}: {
+  parsedText: Row[];
+  selectedIds: Set<number>;
+}) {
   return (
-    <div className="flex flex-wrap gap-4">
+    <>
       {parsedText.length > 0 && (
-        <div className="w-1/3">
+        <div>
           <div className="flex justify-between items-center mb-2">
             <h2 className="font-semibold">Extracted Text (Selected)</h2>
             {/* <button
@@ -27,10 +33,10 @@ export default function ResultsTable({ parsedText }: { parsedText: Row[] }) {
               </tr>
             </thead>
             <tbody>
-              {/* {(selectedIds.size === 0
-                  ? parsedText
-                  : parsedText.filter((row) => selectedIds.has(row.id)) */}
-              {parsedText.map((row) => (
+              {(selectedIds.size === 0
+                ? parsedText
+                : parsedText.filter((row) => selectedIds.has(row.id))
+              ).map((row) => (
                 <tr key={`${row.id}-${row.sentenceIndex}`}>
                   <td className="border border-black p-1">{row.id}</td>
                   <td className="border border-black p-1">
@@ -47,6 +53,6 @@ export default function ResultsTable({ parsedText }: { parsedText: Row[] }) {
           </table>
         </div>
       )}
-    </div>
+    </>
   );
 }
