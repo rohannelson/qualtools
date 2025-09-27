@@ -1,8 +1,17 @@
 export type Row = {
   id: number;
+  sentenceIndex: number;
   text: string;
   stakeholder: string;
-  block?: number;
   sentiment?: "negative" | "positive";
   embedding?: number[];
 };
+
+export enum Status {
+  PENDING = "Awaiting user input",
+  PARSING = "Parsing responses",
+  EMBEDDING = "Generating embeddings",
+  MERGING = "Validating response splits",
+  SENTIMENT = "Analyzing sentiment",
+  MAPPING = "Plotting on scattergraph",
+}

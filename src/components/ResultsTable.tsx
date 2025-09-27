@@ -18,7 +18,11 @@ export default function ResultsTable({ parsedText }: { parsedText: Row[] }) {
             <thead>
               <tr>
                 <th className="border border-black p-1 text-left">ID</th>
+                <th className="border border-black p-1 text-left">#</th>
                 <th className="border border-black p-1 text-left">Text</th>
+                <th className="border border-black p-1 text-left">
+                  Stakeholder
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -26,9 +30,13 @@ export default function ResultsTable({ parsedText }: { parsedText: Row[] }) {
                   ? parsedText
                   : parsedText.filter((row) => selectedIds.has(row.id)) */}
               {parsedText.map((row) => (
-                <tr key={row.id}>
+                <tr key={`${row.id}-${row.sentenceIndex}`}>
                   <td className="border border-black p-1">{row.id}</td>
+                  <td className="border border-black p-1">
+                    {Number(row.sentenceIndex) + 1}
+                  </td>
                   <td className="border border-black p-1">{row.text}</td>
+                  <td className="border border-black p-1">{row.stakeholder}</td>
                 </tr>
               ))}
             </tbody>
