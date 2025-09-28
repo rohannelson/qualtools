@@ -41,4 +41,4 @@ export type CompromiseTerm = {
 
 export type WordsFreq = [string, number][];
 
-export type IdPair = { id: number; sentenceIndex: number };
+export type IdKey = { id: number; sentenceIndex: number };

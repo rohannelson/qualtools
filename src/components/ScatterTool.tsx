@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { compromiseStopTags, RESPONSES } from "./consts";
-import { Status, type CompromiseTerm, type IdPair, type Row } from "./types";
+import { Status, type CompromiseTerm, type Row } from "./types";
 import nlp from "compromise";
 import ResultsTable from "./ResultsTable";
 import type {
@@ -17,7 +17,7 @@ export default function ScatterTool() {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [status, setStatus] = useState<Status>(Status.PENDING);
   const [parsedText, setParsedText] = useState<Row[]>([]);
-  const [selectedIds, setSelectedIds] = useState<Set<IdPair>>(new Set());
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [statusError, setStatusError] = useState<string>("");
   const [rootsFreq, setRootsFreq] = useState<[string, number][]>([]);
 

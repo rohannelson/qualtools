@@ -1,5 +1,5 @@
 import { useRef, useState, type Dispatch, type SetStateAction } from "react";
-import type { IdPair, Point, Row } from "./types";
+import type { Row } from "./types";
 import { Scatter } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -12,22 +12,30 @@ import {
 
 ChartJS.register(ScatterController, LinearScale, PointElement, Tooltip, Legend);
 
+interface DragRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+interface PointData {
+  x: number;
+  y: number;
+  id: number;
+  text: string;
+  sentenceIndex: number;
+}
+
 export default function ScatterGraph({
   parsedText,
   selectedIds,
   setSelectedIds,
 }: {
   parsedText: Row[];
-  selectedIds: Set<IdPair>;
-  setSelectedIds: Dispatch<SetStateAction<Set<IdPair>>>;
+  selectedIds: Set<string>;
+  setSelectedIds: Dispatch<SetStateAction<Set<string>>>;
 }) {
-  interface DragRect {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  }
-
   const chartRef = useRef<any>(null);
   const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(
     null
@@ -95,9 +103,7 @@ export default function ScatterGraph({
 
       setSelectedIds((prev) => {
         const newSet = new Set(prev);
-        selected.forEach((p) =>
-          newSet.add({ id: p.id, sentenceIndex: p.sentenceIndex })
-        );
+        selected.forEach((p) => newSet.add(`${p.id}-${p.sentenceIndex}`));
         return newSet;
       });
     }
@@ -116,9 +122,9 @@ export default function ScatterGraph({
   }) {
     setSelectedIds((prev) => {
       const newSet = new Set(prev);
-      if (newSet.has({ id, sentenceIndex }))
-        newSet.delete({ id, sentenceIndex });
-      else newSet.add({ id, sentenceIndex });
+      if (newSet.has(`${id}-${sentenceIndex}`))
+        newSet.delete(`${id}-${sentenceIndex}`);
+      else newSet.add(`${id}-${sentenceIndex}`);
       return newSet;
     });
   }
@@ -130,20 +136,21 @@ export default function ScatterGraph({
   const minY = Math.min(...ys, 0);
   const maxY = Math.max(...ys, 1);
 
+  const pointData: PointData[] = parsedText.map((p) => ({
+    x: p?.coords?.x ?? 0,
+    y: p?.coords?.y ?? 0,
+    id: p.id,
+    text: p.text,
+    sentenceIndex: p.sentenceIndex,
+  }));
+
   const data = {
     datasets: [
       {
         label: "2D Embeddings",
-        data: parsedText.map((p) => ({
-          x: p?.coords?.x,
-          y: p?.coords?.y,
-          id: p.id,
-          text: p.text,
-        })),
+        data: pointData,
         backgroundColor: parsedText.map((p) =>
-          selectedIds.has({ id: p.id, sentenceIndex: p.sentenceIndex })
-            ? "#FF5733"
-            : "#8884d8"
+          selectedIds.has(`${p.id}-${p.sentenceIndex}`) ? "#FF5733" : "#8884d8"
         ),
         pointRadius: 5,
       },
