@@ -7,6 +7,8 @@ export type Row = {
   stakeholder: string;
   sentiment?: TextClassificationSingle;
   embedding?: number[];
+  coords?: { x: number; y: number };
+  roots?: string[];
 };
 
 export enum Status {
@@ -16,6 +18,7 @@ export enum Status {
   MERGING = "Validating response splits",
   SENTIMENT = "Analyzing sentiment",
   MAPPING = "Plotting on scattergraph",
+  STEMMING = "Determining word frequency",
   COMPLETE = "Processing complete!",
   ERROR = "Error",
 }
@@ -26,3 +29,16 @@ export interface Point {
   x: number;
   y: number;
 }
+
+export type CompromiseTerm = {
+  text: string;
+  normal: string;
+  root?: string;
+  tags: string[];
+  pre: string;
+  post: string;
+};
+
+export type WordsFreq = [string, number][];
+
+export type IdPair = { id: number; sentenceIndex: number };

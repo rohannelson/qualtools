@@ -1,24 +1,25 @@
 import { useRef, useState } from "react";
-import { RESPONSES } from "./consts";
-import { Status, type Point, type Row } from "./types";
+import { compromiseStopTags, RESPONSES } from "./consts";
+import { Status, type CompromiseTerm, type IdPair, type Row } from "./types";
 import nlp from "compromise";
 import ResultsTable from "./ResultsTable";
 import type {
   EmbeddingsWorkerMessage,
   EmbeddingsWorkerResponse,
-} from "./embeddingsWorker";
+} from "./workers/embeddingsWorker";
 import { cos_sim, pipeline } from "@xenova/transformers";
-import type { ReductionWorkerMessage } from "./reductionWorker";
+import type { ReductionWorkerMessage } from "./workers/reductionWorker";
 import ScatterGraph from "./ScatterGraph";
 import useSentiment from "./useSentiment";
+import WordFrequency from "./wordFrequency";
 
 export default function ScatterTool() {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [status, setStatus] = useState<Status>(Status.PENDING);
   const [parsedText, setParsedText] = useState<Row[]>([]);
-  const [embeddings2D, setEmbeddings2D] = useState<Point[]>([]);
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [selectedIds, setSelectedIds] = useState<Set<IdPair>>(new Set());
   const [statusError, setStatusError] = useState<string>("");
+  const [rootsFreq, setRootsFreq] = useState<[string, number][]>([]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -55,7 +56,7 @@ export default function ScatterTool() {
     //Generate embeddings via worker
     setStatus(Status.EMBEDDING);
     const embeddingsWorker = new Worker(
-      new URL("./embeddingsWorker.ts", import.meta.url),
+      new URL("./workers/embeddingsWorker.ts", import.meta.url),
       {
         type: "module",
       }
@@ -106,7 +107,7 @@ export default function ScatterTool() {
       //Reduce to 2D for scattergraph
       setStatus(Status.MAPPING);
       const reductionWorker = new Worker(
-        new URL("./reductionWorker.ts", import.meta.url),
+        new URL("./workers/reductionWorker.ts", import.meta.url),
         {
           type: "module",
         }
@@ -128,16 +129,42 @@ export default function ScatterTool() {
           return;
         }
 
-        setEmbeddings2D(
-          coords.map((pt: number[], i: number) => ({
-            id: nextParsedText[i].id,
-            text: nextParsedText[i].text,
-            x: pt[0],
-            y: pt[1],
-          }))
+        coords.forEach(
+          (pt: number[], i: number) =>
+            (nextParsedText[i].coords = {
+              x: pt[0],
+              y: pt[1],
+            })
         );
-        setStatus(Status.COMPLETE);
         reductionWorker.terminate();
+
+        //Compute sentence roots
+        setStatus(Status.STEMMING);
+        const nextRootsFreq: Record<string, number> = {};
+        nextParsedText.forEach((row, i) => {
+          const doc = nlp(row.text);
+          doc.compute("root");
+          const roots = doc
+            .json()[0]
+            .terms.filter((t: CompromiseTerm) => {
+              return (
+                //Filter out inconsequential words
+                !compromiseStopTags.some((tag) => t.tags.includes(tag))
+              );
+            })
+            .map((t: CompromiseTerm): string => t.root || t.normal);
+          nextParsedText[i].roots = roots;
+
+          for (const root of roots) {
+            nextRootsFreq[root] = (nextRootsFreq[root] || 0) + 1;
+          }
+        });
+        const nextRootsFreqSorted = Object.entries(nextRootsFreq).sort(
+          (a, b) => b[1] - a[1]
+        );
+        setRootsFreq(nextRootsFreqSorted);
+        console.log(nextRootsFreqSorted);
+        setStatus(Status.COMPLETE);
       };
     };
   }
@@ -189,12 +216,16 @@ export default function ScatterTool() {
           <ResultsTable parsedText={parsedText} selectedIds={selectedIds} />
         </div>
         <div className="col-span-2">
-          <ScatterGraph
-            parsedText={parsedText}
-            embeddings2D={embeddings2D}
-            selectedIds={selectedIds}
-            setSelectedIds={setSelectedIds}
-          />
+          <div>
+            <ScatterGraph
+              parsedText={parsedText}
+              selectedIds={selectedIds}
+              setSelectedIds={setSelectedIds}
+            />
+            <div className="mt-[100vh] pt-2">
+              {rootsFreq?.[0] && <WordFrequency freqList={rootsFreq} />}
+            </div>
+          </div>
         </div>
       </div>
     </div>

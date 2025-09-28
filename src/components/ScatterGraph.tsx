@@ -1,5 +1,5 @@
 import { useRef, useState, type Dispatch, type SetStateAction } from "react";
-import type { Point, Row } from "./types";
+import type { IdPair, Point, Row } from "./types";
 import { Scatter } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -14,14 +14,12 @@ ChartJS.register(ScatterController, LinearScale, PointElement, Tooltip, Legend);
 
 export default function ScatterGraph({
   parsedText,
-  embeddings2D,
   selectedIds,
   setSelectedIds,
 }: {
   parsedText: Row[];
-  embeddings2D: Point[];
-  selectedIds: Set<number>;
-  setSelectedIds: Dispatch<SetStateAction<Set<number>>>;
+  selectedIds: Set<IdPair>;
+  setSelectedIds: Dispatch<SetStateAction<Set<IdPair>>>;
 }) {
   interface DragRect {
     x: number;
@@ -74,7 +72,7 @@ export default function ScatterGraph({
       );
       if (elements.length) {
         const point: any = elements[0].element.$context.raw;
-        toggleSelection(point.id);
+        toggleSelection({ id: point.id, sentenceIndex: point.sentenceIndex });
       }
     } else {
       // Drag selection
@@ -86,17 +84,20 @@ export default function ScatterGraph({
       const startY = yScale.getValueForPixel(dragRect.y + dragRect.height); // inverted
       const endY = yScale.getValueForPixel(dragRect.y);
 
-      const selected = embeddings2D.filter(
+      const selected = parsedText.filter(
         (p) =>
-          p.x >= Math.min(startX, endX) &&
-          p.x <= Math.max(startX, endX) &&
-          p.y >= Math.min(startY, endY) &&
-          p.y <= Math.max(startY, endY)
+          p?.coords &&
+          p.coords.x >= Math.min(startX, endX) &&
+          p.coords.x <= Math.max(startX, endX) &&
+          p.coords.y >= Math.min(startY, endY) &&
+          p.coords.y <= Math.max(startY, endY)
       );
 
       setSelectedIds((prev) => {
         const newSet = new Set(prev);
-        selected.forEach((p) => newSet.add(p.id));
+        selected.forEach((p) =>
+          newSet.add({ id: p.id, sentenceIndex: p.sentenceIndex })
+        );
         return newSet;
       });
     }
@@ -106,17 +107,24 @@ export default function ScatterGraph({
   }
 
   // --- Selection helpers ---
-  function toggleSelection(id: number) {
+  function toggleSelection({
+    id,
+    sentenceIndex,
+  }: {
+    id: number;
+    sentenceIndex: number;
+  }) {
     setSelectedIds((prev) => {
       const newSet = new Set(prev);
-      if (newSet.has(id)) newSet.delete(id);
-      else newSet.add(id);
+      if (newSet.has({ id, sentenceIndex }))
+        newSet.delete({ id, sentenceIndex });
+      else newSet.add({ id, sentenceIndex });
       return newSet;
     });
   }
 
-  const xs = embeddings2D.map((p) => p.x);
-  const ys = embeddings2D.map((p) => p.y);
+  const xs = parsedText.map((p) => p?.coords?.x ?? 0);
+  const ys = parsedText.map((p) => p?.coords?.y ?? 0);
   const minX = Math.min(...xs, 0);
   const maxX = Math.max(...xs, 1);
   const minY = Math.min(...ys, 0);
@@ -126,14 +134,16 @@ export default function ScatterGraph({
     datasets: [
       {
         label: "2D Embeddings",
-        data: embeddings2D.map((p) => ({
-          x: p.x,
-          y: p.y,
+        data: parsedText.map((p) => ({
+          x: p?.coords?.x,
+          y: p?.coords?.y,
           id: p.id,
           text: p.text,
         })),
-        backgroundColor: embeddings2D.map((p) =>
-          selectedIds.has(p.id) ? "#FF5733" : "#8884d8"
+        backgroundColor: parsedText.map((p) =>
+          selectedIds.has({ id: p.id, sentenceIndex: p.sentenceIndex })
+            ? "#FF5733"
+            : "#8884d8"
         ),
         pointRadius: 5,
       },
@@ -171,7 +181,7 @@ export default function ScatterGraph({
 
   return (
     <>
-      {embeddings2D.length > 0 && (
+      {parsedText.length > 0 && (
         <>
           <h2 className="font-semibold mb-2">2D Embedding Scatterplot</h2>
           <div className="relative w-full h-[calc(100%-1.5rem)]">

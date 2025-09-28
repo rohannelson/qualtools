@@ -1,3 +1,17 @@
+export const compromiseStopTags = [
+  "Determiner",
+  "Auxiliary",
+  "Conjunction",
+  "Preposition",
+  "Pronoun",
+  "Modal",
+  "Particle",
+  "InfinitiveMarker",
+  "Interjection",
+  "Copula",
+  "Possessive",
+];
+
 export const RESPONSES = `4821	I think the teachers are doing a great job overall. My child feels encouraged and supported.	students  
 9134	Communication with parents has improved, but sometimes notices come too late. A bit more lead time would really help.	parents  
 2750	More extracurricular activities would be great.	students  

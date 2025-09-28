@@ -1,11 +1,11 @@
-import type { Row } from "./types";
+import type { IdPair, Row } from "./types";
 
 export default function ResultsTable({
   parsedText,
   selectedIds,
 }: {
   parsedText: Row[];
-  selectedIds: Set<number>;
+  selectedIds: Set<IdPair>;
 }) {
   return (
     <>
@@ -32,7 +32,12 @@ export default function ResultsTable({
             <tbody>
               {(selectedIds.size === 0
                 ? parsedText
-                : parsedText.filter((row) => selectedIds.has(row.id))
+                : parsedText.filter((row) =>
+                    selectedIds.has({
+                      id: row.id,
+                      sentenceIndex: row.sentenceIndex,
+                    })
+                  )
               ).map((row) => (
                 <tr key={`${row.id}-${row.sentenceIndex}`}>
                   <td className="border border-black p-1">{row.id}</td>

@@ -3,7 +3,7 @@ import { Status, type Row } from "./types";
 import type {
   SentimentWorkerMessage,
   SentimentWorkerResponse,
-} from "./sentimentWorker";
+} from "./workers/sentimentWorker";
 
 export default function useSentiment({
   setStatus,
@@ -18,7 +18,7 @@ export default function useSentiment({
   function getSentiment() {
     setStatus(Status.SENTIMENT);
     const sentimentWorker = new Worker(
-      new URL("./sentimentWorker.ts", import.meta.url),
+      new URL("./workers/sentimentWorker.ts", import.meta.url),
       {
         type: "module",
       }

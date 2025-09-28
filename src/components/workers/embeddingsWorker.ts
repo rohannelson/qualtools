@@ -1,6 +1,6 @@
 import { pipeline } from "@xenova/transformers";
-import type { Row } from "./types";
-import { chunkArray } from "../lib/utils";
+import type { Row } from "../types";
+import { chunkArray } from "../../lib/utils";
 
 export interface EmbeddingsWorkerMessage {
   responses: Row[];
