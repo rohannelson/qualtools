@@ -12,13 +12,10 @@ export default function ResultsTable({
       {parsedText.length > 0 && (
         <div>
           <div className="flex justify-between items-center mb-2">
-            <h2 className="font-semibold">Extracted Text (Selected)</h2>
-            {/* <button
-                onClick={deselectAll}
-                className="px-2 py-1 bg-gray-300 rounded text-sm hover:bg-gray-400"
-              >
-                Deselect All
-              </button> */}
+            <div className="flex w-full">
+              <h2 className="font-semibold">Extracted Text (Selected)</h2>
+              <p className="ml-auto">{parsedText.length} rows</p>
+            </div>
           </div>
           <table className="border-collapse border border-black w-full">
             <thead>

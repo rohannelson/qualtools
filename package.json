@@ -18,6 +18,7 @@
     "astro": "^5.13.10",
     "chart.js": "^4.5.0",
     "compromise": "^14.14.4",
+    "ml-pca": "^4.1.1",
     "nanostores": "^1.0.1",
     "react": "^19.1.1",
     "react-chartjs-2": "^5.3.0",

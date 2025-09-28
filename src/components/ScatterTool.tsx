@@ -94,11 +94,9 @@ export default function ScatterTool() {
               pooling: "mean",
               normalize: true,
             });
-            const embedding = embeddingTensor.tolist() as number[];
-            console.log(embedding);
+            const [embedding] = embeddingTensor.tolist() as number[][];
             targetRow.embedding = embedding;
             nextParsedText.splice(i, 1);
-            console.log("sentence remerged");
             break;
           }
         }

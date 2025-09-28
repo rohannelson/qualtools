@@ -1,4 +1,5 @@
-import { UMAP, type UMAPParameters } from "umap-js";
+import { UMAP } from "umap-js";
+import { PCA } from "ml-pca";
 
 export interface ReductionWorkerMessage {
   embeddings: number[][];
@@ -11,14 +12,31 @@ export interface ReductionWorkerResponse {
 
 self.onmessage = async (e: MessageEvent<ReductionWorkerMessage>) => {
   try {
-    const { embeddings } = e.data;
+    let { embeddings } = e.data;
+
+    console.log(embeddings);
+
+    //>120 requires PCA to reduce vector size, otherwise 'too much recursion' error.
+    if (embeddings[0].length > 120) {
+      let nComponents: number = 192;
+      if (embeddings.length > 1920) {
+        nComponents = 12;
+      } else if (embeddings[0].length > 960) {
+        nComponents = 24;
+      } else if (embeddings[0].length > 480) {
+        nComponents = 48;
+      } else if (embeddings[0].length > 240) {
+        nComponents = 96;
+      }
+
+      const pca = new PCA(embeddings);
+      const reducedEmbeddings = pca.predict(embeddings, { nComponents });
+      embeddings = reducedEmbeddings.to2DArray();
+    }
 
     const umap = new UMAP({
-      nComponents: 2,
-      nNeighbors: Math.min(20, embeddings.length - 1) || 2,
-      minDist: 0.05,
+      nNeighbors: Math.min(15, embeddings.length - 1) || 2,
       spread: 2.0,
-      nEpochs: 500,
     });
 
     await umap.fitAsync(embeddings);
