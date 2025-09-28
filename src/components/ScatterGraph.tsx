@@ -9,6 +9,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import { oneToHex } from "../lib/utils";
 
 ChartJS.register(ScatterController, LinearScale, PointElement, Tooltip, Legend);
 
@@ -144,15 +145,71 @@ export default function ScatterGraph({
     sentenceIndex: p.sentenceIndex,
   }));
 
+  function getShape(row: Row) {
+    const stakeholders = Array.from(
+      new Set(parsedText.map((r) => r.stakeholder))
+    ).sort();
+    const shapes = ["rect", "circle", "rectRot", "triangle", "star"];
+    const index = stakeholders.findIndex((val) => val === row.stakeholder);
+    return shapes[index % shapes.length];
+  }
+
+  function shapeColours() {
+    return parsedText.map((p) => {
+      const alpha = oneToHex(p.sentiment?.score ?? 0.5);
+
+      const [
+        lightGreen,
+        lightRed,
+        brightGreen,
+        brightRed,
+        lightGrey,
+        brightGrey,
+      ] = [
+        `#40B840${alpha}`,
+        `#ee9090${alpha}`,
+        `#00ff00${alpha}`,
+        `#ff0000${alpha}`,
+        "#A0ACB0",
+        "#493657",
+      ];
+
+      if (p?.sentiment?.label) {
+        let light = "";
+        let bright = "";
+        if (p.sentiment.label.toLowerCase() === "negative") {
+          light = lightRed;
+          bright = brightRed;
+        } else {
+          light = lightGreen;
+          bright = brightGreen;
+        }
+        return selectedIds.has(`${p.id}-${p.sentenceIndex}`) ? bright : light;
+      }
+      return selectedIds.has(`${p.id}-${p.sentenceIndex}`)
+        ? brightGrey
+        : lightGrey;
+    });
+  }
+
   const data = {
     datasets: [
       {
         label: "2D Embeddings",
         data: pointData,
-        backgroundColor: parsedText.map((p) =>
-          selectedIds.has(`${p.id}-${p.sentenceIndex}`) ? "#FF5733" : "#8884d8"
+        backgroundColor: shapeColours(),
+        pointRadius: parsedText.map((row) => {
+          const shape = getShape(row);
+          return shape === "circle" ? 5 : 6.5;
+        }),
+        borderWidth: parsedText.map((row) =>
+          row?.sentiment?.label &&
+          selectedIds.has(`${row.id}-${row.sentenceIndex}`)
+            ? 1.5
+            : 0
         ),
-        pointRadius: 5,
+        borderColor: "#000000",
+        pointStyle: parsedText.map((row) => getShape(row)),
       },
     ],
   };
