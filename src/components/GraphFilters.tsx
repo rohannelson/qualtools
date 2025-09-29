@@ -1,11 +1,14 @@
 import { useStore } from "@nanostores/react";
 import { $filters } from "./stores";
 import type { Sentiment } from "./types";
+import type { Dispatch, SetStateAction } from "react";
 
 export default function GraphFilters({
   stakeholders,
+  setSelectedIds,
 }: {
   stakeholders: string[];
+  setSelectedIds: Dispatch<SetStateAction<Set<string>>>;
 }) {
   const filters = useStore($filters);
 
@@ -15,6 +18,14 @@ export default function GraphFilters({
 
   return (
     <div className="ml-auto flex gap-2 items-center">
+      <button
+        type="button"
+        onClick={() => setSelectedIds(new Set())}
+        className="px-2 py-1 bg-gray-300 rounded text-sm hover:bg-gray-400"
+      >
+        Deselect All
+      </button>
+
       {/* Search */}
       <input
         type="text"

@@ -141,83 +141,65 @@ export default function ScatterGraph({
   const minY = Math.min(...ys, 0);
   const maxY = Math.max(...ys, 1);
 
-  const pointData: PointData[] = parsedText.map((p) => ({
-    x: p?.coords?.x ?? 0,
-    y: p?.coords?.y ?? 0,
-    id: p.id,
-    text: p.text,
-    sentenceIndex: p.sentenceIndex,
-  }));
+  // Group rows by stakeholder
+  const grouped = stakeholders.map((stakeholder, idx) => {
+    const shape = ["rect", "circle", "rectRot", "triangle", "star"][idx % 5];
 
-  function getShape(row: Row) {
-    const shapes = ["rect", "circle", "rectRot", "triangle", "star"];
-    const index = stakeholders.findIndex(
-      (val) => val === row.stakeholder.trim()
+    const rows = parsedText.filter(
+      (p) => p.stakeholder.trim() === stakeholder.trim()
     );
-    return shapes[index % shapes.length];
-  }
 
-  function shapeColours() {
-    return parsedText.map((p) => {
-      const alpha = oneToHex(p.sentiment?.score ?? 0.5);
+    return {
+      label: stakeholder,
+      data: rows.map((p) => ({
+        x: p?.coords?.x ?? 0,
+        y: p?.coords?.y ?? 0,
+        id: p.id,
+        text: p.text,
+        sentenceIndex: p.sentenceIndex,
+      })),
+      pointStyle: shape,
+      pointRadius: shape === "circle" ? 5 : 6.5,
+      borderWidth: rows.map((row) =>
+        row?.sentiment?.label &&
+        selectedIds.has(`${row.id}-${row.sentenceIndex}`)
+          ? 1.5
+          : 0
+      ),
+      borderColor: "#000000",
+      backgroundColor: rows.map((p) => {
+        const alpha = oneToHex(p.sentiment?.score ?? 0.5);
 
-      const [
-        lightGreen,
-        lightRed,
-        brightGreen,
-        brightRed,
-        lightGrey,
-        brightGrey,
-      ] = [
-        `#40B840${alpha}`,
-        `#ee9090${alpha}`,
-        `#00ff00${alpha}`,
-        `#ff0000${alpha}`,
-        "#A0ACB0",
-        "#493657",
-      ];
+        const [
+          lightGreen,
+          lightRed,
+          brightGreen,
+          brightRed,
+          lightGrey,
+          brightGrey,
+        ] = [
+          `#40B840${alpha}`,
+          `#ee9090${alpha}`,
+          `#00ff00${alpha}`,
+          `#ff0000${alpha}`,
+          "#A0ACB0",
+          "#493657",
+        ];
 
-      if (p?.sentiment?.label) {
-        let light = "";
-        let bright = "";
-        if (p.sentiment.label.toLowerCase() === "negative") {
-          light = lightRed;
-          bright = brightRed;
-        } else {
-          light = lightGreen;
-          bright = brightGreen;
+        if (p?.sentiment?.label) {
+          const isNeg = p.sentiment.label.toLowerCase() === "negative";
+          const light = isNeg ? lightRed : lightGreen;
+          const bright = isNeg ? brightRed : brightGreen;
+          return selectedIds.has(`${p.id}-${p.sentenceIndex}`) ? bright : light;
         }
-        return selectedIds.has(`${p.id}-${p.sentenceIndex}`) ? bright : light;
-      }
-      return selectedIds.has(`${p.id}-${p.sentenceIndex}`)
-        ? brightGrey
-        : lightGrey;
-    });
-  }
+        return selectedIds.has(`${p.id}-${p.sentenceIndex}`)
+          ? brightGrey
+          : lightGrey;
+      }),
+    };
+  });
 
-  const data = {
-    datasets: [
-      {
-        label: "2D Embeddings",
-        data: pointData,
-        backgroundColor: shapeColours(),
-        pointRadius: parsedText.map((row) => {
-          const shape = getShape(row);
-          return shape === "circle" ? 5 : 6.5;
-        }),
-        borderWidth: parsedText.map((row) =>
-          row?.sentiment?.label &&
-          selectedIds.has(`${row.id}-${row.sentenceIndex}`)
-            ? 1.5
-            : 0
-        ),
-        borderColor: "#000000",
-        pointStyle: parsedText.map((row) => {
-          return getShape(row);
-        }),
-      },
-    ],
-  };
+  const data = { datasets: grouped };
 
   const buffer = 0.05; // 5% buffer
   const xRange = maxX - minX;
@@ -232,6 +214,27 @@ export default function ScatterGraph({
           label: (ctx: any) => {
             const p = ctx.raw;
             return `ID: ${p.id}\nText: ${p.text}`;
+          },
+        },
+      },
+      legend: {
+        labels: {
+          usePointStyle: true,
+          fillStyle: "#A0ACB0",
+          boxWidth: 9,
+          boxHeight: 9,
+          generateLabels: (chart: ChartJS) => {
+            return chart.data.datasets.map((dataset, i) => {
+              return {
+                text: dataset.label,
+                fillStyle: "#A0ACB0",
+                strokeStyle: "#A0ACB0",
+                //@ts-ignore
+                pointStyle: dataset.pointStyle, // match dataset shape
+                hidden: false,
+                index: i,
+              };
+            });
           },
         },
       },
@@ -250,13 +253,16 @@ export default function ScatterGraph({
 
   return (
     <>
-      {parsedText.length > 0 && (
+      {
         <>
           <div className="flex w-full pr-2">
             <h2 className="text-xl font-semibold mb-2 ml-8">
               2D Embedding Scatterplot
             </h2>
-            <GraphFilters stakeholders={stakeholders} />
+            <GraphFilters
+              stakeholders={stakeholders}
+              setSelectedIds={setSelectedIds}
+            />
           </div>
           <div
             className="relative w-full min-h-[500px] cursor-crosshair"
@@ -278,7 +284,7 @@ export default function ScatterGraph({
             )}
           </div>
         </>
-      )}
+      }
     </>
   );
 }

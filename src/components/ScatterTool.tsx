@@ -205,13 +205,6 @@ export default function ScatterTool() {
               >
                 Get sentiment
               </button>
-              <button
-                type="button"
-                onClick={() => setSelectedIds(new Set())}
-                className="px-2 py-1 bg-gray-300 rounded text-sm hover:bg-gray-400"
-              >
-                Deselect All
-              </button>
             </div>
             <p className="text-sm mt-1">
               {status}

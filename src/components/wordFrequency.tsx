@@ -14,7 +14,10 @@ export default function WordFrequency({
   const [alphabetical, setAlphabetical] = useState(false);
   return (
     <div className="ml-10">
-      <h2 className="text-xl font-bold mb-2">Frequency List</h2>
+      <h2 className="text-xl font-bold">Frequency List</h2>
+      <p className="text-xs italic mb-2">
+        Word roots occurring 5 or more times
+      </p>
       <button
         type="button"
         onClick={() => {
@@ -23,7 +26,7 @@ export default function WordFrequency({
             : sortByFrequency();
           setAlphabetical(!alphabetical);
         }}
-        className="border rounded-md p-1 mb-1"
+        className="border rounded-md p-1 mb-1 text-sm"
       >
         {alphabetical ? "Sort by frequency" : "Sort alphabetically"}
       </button>
