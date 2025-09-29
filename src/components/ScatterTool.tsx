@@ -20,6 +20,7 @@ export default function ScatterTool() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [statusError, setStatusError] = useState<string>("");
   const [rootsFreq, setRootsFreq] = useState<[string, number][]>([]);
+  const [stakeholders, setStakeholders] = useState<string[]>([]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -51,6 +52,11 @@ export default function ScatterTool() {
     }
 
     const nextParsedText = parseText(rawText != "" ? rawText : RESPONSES);
+    setStakeholders(
+      Array.from(
+        new Set(nextParsedText.map((r) => r.stakeholder.trim()))
+      ).sort()
+    );
     setParsedText(nextParsedText);
 
     //Generate embeddings via worker
@@ -221,6 +227,7 @@ export default function ScatterTool() {
               parsedText={parsedText}
               selectedIds={selectedIds}
               setSelectedIds={setSelectedIds}
+              stakeholders={stakeholders}
             />
             <div className="mt-[100vh] pt-2">
               {rootsFreq?.[0] && <WordFrequency freqList={rootsFreq} />}

@@ -10,6 +10,7 @@ import {
   Legend,
 } from "chart.js";
 import { oneToHex } from "../lib/utils";
+import GraphFilters from "./GraphFilters";
 
 ChartJS.register(ScatterController, LinearScale, PointElement, Tooltip, Legend);
 
@@ -32,10 +33,12 @@ export default function ScatterGraph({
   parsedText,
   selectedIds,
   setSelectedIds,
+  stakeholders,
 }: {
   parsedText: Row[];
   selectedIds: Set<string>;
   setSelectedIds: Dispatch<SetStateAction<Set<string>>>;
+  stakeholders: string[];
 }) {
   const chartRef = useRef<any>(null);
   const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(
@@ -146,9 +149,6 @@ export default function ScatterGraph({
   }));
 
   function getShape(row: Row) {
-    const stakeholders = Array.from(
-      new Set(parsedText.map((r) => r.stakeholder))
-    ).sort();
     const shapes = ["rect", "circle", "rectRot", "triangle", "star"];
     const index = stakeholders.findIndex((val) => val === row.stakeholder);
     return shapes[index % shapes.length];
@@ -247,7 +247,12 @@ export default function ScatterGraph({
     <>
       {parsedText.length > 0 && (
         <>
-          <h2 className="font-semibold mb-2">2D Embedding Scatterplot</h2>
+          <div className="flex w-full pr-2">
+            <h2 className="text-xl font-semibold mb-2 ml-8">
+              2D Embedding Scatterplot
+            </h2>
+            <GraphFilters stakeholders={stakeholders} />
+          </div>
           <div className="relative w-full h-[calc(100%-1.5rem)]">
             <div
               className="absolute top-0 left-0 w-full h-full cursor-crosshair"
