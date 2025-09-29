@@ -12,11 +12,13 @@ import type { ReductionWorkerMessage } from "./workers/reductionWorker";
 import ScatterGraph from "./ScatterGraph";
 import useSentiment from "./useSentiment";
 import WordFrequency from "./wordFrequency";
+import { useStore } from "@nanostores/react";
+import { $rows } from "./stores";
 
 export default function ScatterTool() {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [status, setStatus] = useState<Status>(Status.PENDING);
-  const [parsedText, setParsedText] = useState<Row[]>([]);
+  const parsedText = useStore($rows);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [statusError, setStatusError] = useState<string>("");
   const [rootsFreq, setRootsFreq] = useState<[string, number][]>([]);
@@ -57,7 +59,7 @@ export default function ScatterTool() {
         new Set(nextParsedText.map((r) => r.stakeholder.trim()))
       ).sort()
     );
-    setParsedText(nextParsedText);
+    $rows.set(nextParsedText);
 
     //Generate embeddings via worker
     setStatus(Status.EMBEDDING);
@@ -79,7 +81,7 @@ export default function ScatterTool() {
       nextParsedText.forEach(
         (response, i) => (response.embedding = embeddings[i])
       );
-      setParsedText(nextParsedText);
+      $rows.set(nextParsedText);
       embeddingsWorker.terminate();
 
       //Remerge sentences with similar embeddings
@@ -108,7 +110,7 @@ export default function ScatterTool() {
           }
         }
       }
-      setParsedText([...nextParsedText]);
+      $rows.set([...nextParsedText]);
 
       //Reduce to 2D for scattergraph
       setStatus(Status.MAPPING);
@@ -177,8 +179,6 @@ export default function ScatterTool() {
 
   const getSentiment = useSentiment({
     setStatus,
-    parsedText,
-    setParsedText,
   });
   return (
     <div className="m-8">
@@ -219,7 +219,7 @@ export default function ScatterTool() {
             </p>
           </form>
 
-          <ResultsTable parsedText={parsedText} selectedIds={selectedIds} />
+          <ResultsTable selectedIds={selectedIds} />
         </div>
         <div className="col-span-2">
           <div>
