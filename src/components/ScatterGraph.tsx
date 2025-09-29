@@ -258,26 +258,24 @@ export default function ScatterGraph({
             </h2>
             <GraphFilters stakeholders={stakeholders} />
           </div>
-          <div className="relative w-full h-[calc(100%-1.5rem)]">
-            <div
-              className="absolute top-0 left-0 w-full h-full cursor-crosshair"
-              onMouseDown={handleMouseDown}
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
-            >
-              <Scatter ref={chartRef} data={data} options={options} />
-              {dragRect && (
-                <div
-                  className="absolute bg-blue-200 border border-blue-600 opacity-50"
-                  style={{
-                    left: dragRect.x,
-                    top: dragRect.y,
-                    width: dragRect.width,
-                    height: dragRect.height,
-                  }}
-                />
-              )}
-            </div>
+          <div
+            className="relative w-full min-h-[500px] cursor-crosshair"
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+          >
+            <Scatter ref={chartRef} data={data} options={options} />
+            {dragRect && (
+              <div
+                className="absolute bg-blue-200 border border-blue-600 opacity-50"
+                style={{
+                  left: dragRect.x,
+                  top: dragRect.y,
+                  width: dragRect.width,
+                  height: dragRect.height,
+                }}
+              />
+            )}
           </div>
         </>
       )}

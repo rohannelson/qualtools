@@ -228,8 +228,13 @@ export default function ScatterTool() {
               setSelectedIds={setSelectedIds}
               stakeholders={stakeholders}
             />
-            <div className="mt-[100vh] pt-2">
-              {rootsFreq?.[0] && <WordFrequency freqList={rootsFreq} />}
+            <div className="pt-2">
+              {rootsFreq?.[0] && (
+                <WordFrequency
+                  rootsFreq={rootsFreq}
+                  setRootsFreq={setRootsFreq}
+                />
+              )}
             </div>
           </div>
         </div>
