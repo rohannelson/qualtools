@@ -14,8 +14,6 @@ self.onmessage = async (e: MessageEvent<ReductionWorkerMessage>) => {
   try {
     let { embeddings } = e.data;
 
-    console.log(embeddings);
-
     //>120 requires PCA to reduce vector size, otherwise 'too much recursion' error.
     //Could turn this into a formula instead of manual conditional statements.
     if (embeddings[0].length > 120) {

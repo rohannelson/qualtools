@@ -1,4 +1,31 @@
-import { atom } from "nanostores";
-import type { Row } from "./types";
+import { atom, computed } from "nanostores";
+import type { Row, RowFilters } from "./types";
 
 export const $rows = atom<Row[]>([]);
+
+export const $filters = atom<RowFilters>({
+  stakeholder: [],
+  sentiment: "all",
+  search: "",
+});
+
+export const $filteredRows = computed([$rows, $filters], (rows, filters) => {
+  return rows.filter((row) => {
+    if (
+      filters.stakeholder[0] &&
+      !filters.stakeholder.includes(row.stakeholder)
+    )
+      return false;
+    if (
+      filters.sentiment !== "all" &&
+      row?.sentiment?.label?.toLowerCase() !== filters.sentiment
+    )
+      return false;
+    if (
+      filters.search !== "" &&
+      !row.text.toLowerCase().includes(filters.search.toLowerCase())
+    )
+      return false;
+    return true;
+  });
+});

@@ -1,16 +1,17 @@
 import type { Dispatch, SetStateAction } from "react";
-import { Status } from "./types";
+import { Status, type Row } from "./types";
 import type {
   SentimentWorkerMessage,
   SentimentWorkerResponse,
 } from "./workers/sentimentWorker";
 import { $rows } from "./stores";
-import { useStore } from "@nanostores/react";
 
 export default function useSentiment({
   setStatus,
+  parsedText,
 }: {
   setStatus: Dispatch<SetStateAction<Status>>;
+  parsedText: Row[];
 }) {
   //Sentiment analysis
   function getSentiment() {
@@ -21,7 +22,6 @@ export default function useSentiment({
         type: "module",
       }
     );
-    const parsedText = useStore($rows);
     const sentimentMessage: SentimentWorkerMessage = {
       responses: parsedText,
     };

@@ -40,3 +40,11 @@ export type CompromiseTerm = {
 };
 
 export type WordsFreq = [string, number][];
+
+export type RowFilters = {
+  stakeholder: string[];
+  sentiment: "positive" | "negative" | "all";
+  search: string;
+};
+
+export type Sentiment = RowFilters["sentiment"];

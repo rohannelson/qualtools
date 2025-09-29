@@ -1,13 +1,12 @@
 import { useStore } from "@nanostores/react";
-import { $rows } from "./stores";
-import type { Row } from "./types";
+import { $filteredRows } from "./stores";
 
 export default function ResultsTable({
   selectedIds,
 }: {
   selectedIds: Set<string>;
 }) {
-  const parsedText = useStore($rows);
+  const parsedText = useStore($filteredRows);
   return (
     <>
       {parsedText.length > 0 && (

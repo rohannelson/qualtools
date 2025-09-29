@@ -45,8 +45,8 @@ export default function ScatterTool() {
             rows.push({
               id: Number(id),
               sentenceIndex: i,
-              text: sentence,
-              stakeholder,
+              text: sentence.trim(),
+              stakeholder: stakeholder.trim(),
             });
           });
         });
@@ -171,7 +171,6 @@ export default function ScatterTool() {
           (a, b) => b[1] - a[1]
         );
         setRootsFreq(nextRootsFreqSorted);
-        console.log(nextRootsFreqSorted);
         setStatus(Status.COMPLETE);
       };
     };
@@ -179,6 +178,7 @@ export default function ScatterTool() {
 
   const getSentiment = useSentiment({
     setStatus,
+    parsedText,
   });
   return (
     <div className="m-8">
@@ -224,7 +224,6 @@ export default function ScatterTool() {
         <div className="col-span-2">
           <div>
             <ScatterGraph
-              parsedText={parsedText}
               selectedIds={selectedIds}
               setSelectedIds={setSelectedIds}
               stakeholders={stakeholders}

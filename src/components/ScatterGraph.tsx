@@ -11,6 +11,8 @@ import {
 } from "chart.js";
 import { oneToHex } from "../lib/utils";
 import GraphFilters from "./GraphFilters";
+import { useStore } from "@nanostores/react";
+import { $filteredRows } from "./stores";
 
 ChartJS.register(ScatterController, LinearScale, PointElement, Tooltip, Legend);
 
@@ -30,16 +32,15 @@ interface PointData {
 }
 
 export default function ScatterGraph({
-  parsedText,
   selectedIds,
   setSelectedIds,
   stakeholders,
 }: {
-  parsedText: Row[];
   selectedIds: Set<string>;
   setSelectedIds: Dispatch<SetStateAction<Set<string>>>;
   stakeholders: string[];
 }) {
+  const parsedText = useStore($filteredRows);
   const chartRef = useRef<any>(null);
   const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(
     null
@@ -150,7 +151,9 @@ export default function ScatterGraph({
 
   function getShape(row: Row) {
     const shapes = ["rect", "circle", "rectRot", "triangle", "star"];
-    const index = stakeholders.findIndex((val) => val === row.stakeholder);
+    const index = stakeholders.findIndex(
+      (val) => val === row.stakeholder.trim()
+    );
     return shapes[index % shapes.length];
   }
 
@@ -209,7 +212,9 @@ export default function ScatterGraph({
             : 0
         ),
         borderColor: "#000000",
-        pointStyle: parsedText.map((row) => getShape(row)),
+        pointStyle: parsedText.map((row) => {
+          return getShape(row);
+        }),
       },
     ],
   };

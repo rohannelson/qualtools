@@ -1,13 +1,8 @@
 ---
 import ScatterTool from '../components/ScatterTool.tsx';
 import Layout from '../layouts/Layout.astro';
-import nlp from 'compromise';
-const doc = nlp('Three dogs sat by the South fence, waiting for their master');
-doc.compute('root');
-console.log(doc.json()[0].terms.map((t: any) => t.root || t.normal))
 ---
 
 <Layout>
-	<!-- <Home client:only/> -->
 	 <ScatterTool client:only />
 </Layout>
