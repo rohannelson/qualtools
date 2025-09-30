@@ -14,7 +14,10 @@ export default function ResultsTable({
           <div className="flex justify-between items-center mb-2">
             <div className="flex w-full">
               <h2 className="font-semibold">Extracted Text (Selected)</h2>
-              <p className="ml-auto">{parsedText.length} rows</p>
+              <p className="ml-auto">
+                {selectedIds.size > 0 ? selectedIds.size : parsedText.length}{" "}
+                rows
+              </p>
             </div>
           </div>
           <table className="border-collapse border border-black w-full">
