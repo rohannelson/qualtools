@@ -1,4 +1,8 @@
-import { pipeline, type TextClassificationOutput } from "@xenova/transformers";
+import {
+  env,
+  pipeline,
+  type TextClassificationOutput,
+} from "@xenova/transformers";
 import type { Row } from "../types";
 import { chunkArray } from "../../lib/utils";
 
@@ -12,12 +16,14 @@ export interface SentimentWorkerResponse {
   error?: string;
 }
 
+env.allowLocalModels = false;
+
 self.onmessage = async (e: MessageEvent<SentimentWorkerMessage>) => {
   const { responses } = e.data;
 
   const analyst = await pipeline(
     "sentiment-analysis",
-    "/Xenova/distilbert-base-uncased-finetuned-sst-2-english"
+    "Xenova/distilbert-base-uncased-finetuned-sst-2-english"
   );
 
   const responseArray = responses.map((response) => response.text);

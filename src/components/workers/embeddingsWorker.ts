@@ -1,4 +1,4 @@
-import { pipeline } from "@xenova/transformers";
+import { env, pipeline } from "@xenova/transformers";
 import type { Row } from "../types";
 import { chunkArray } from "../../lib/utils";
 
@@ -12,12 +12,14 @@ export interface EmbeddingsWorkerResponse {
   error?: string;
 }
 
+env.allowLocalModels = false;
+
 self.onmessage = async (e: MessageEvent<EmbeddingsWorkerMessage>) => {
   const { responses } = e.data;
 
   const extractor = await pipeline(
     "feature-extraction",
-    "/Xenova/all-MiniLM-L6-v2"
+    "Xenova/all-MiniLM-L6-v2"
   );
 
   const responseArray = responses.map((response) => response.text);
