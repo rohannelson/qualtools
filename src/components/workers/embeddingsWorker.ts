@@ -17,10 +17,7 @@ env.allowLocalModels = false;
 self.onmessage = async (e: MessageEvent<EmbeddingsWorkerMessage>) => {
   const { responses } = e.data;
 
-  const extractor = await pipeline(
-    "feature-extraction",
-    "Xenova/all-MiniLM-L6-v2"
-  );
+  const extractor = await pipeline("feature-extraction", "Xenova/gte-small");
 
   const responseArray = responses.map((response) => response.text);
   const chunkedResponses = chunkArray<string>(responseArray, 50);

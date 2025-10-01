@@ -88,7 +88,7 @@ export default function ScatterTool() {
       setStatus(Status.MERGING);
       const extractor = await pipeline(
         "feature-extraction",
-        "Xenova/all-MiniLM-L6-v2"
+        "Xenova/gte-small"
       );
       for (let i = nextParsedText.length - 1; i > 0; i--) {
         const thisRow = nextParsedText[i];
