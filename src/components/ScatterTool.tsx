@@ -7,7 +7,7 @@ import type {
   EmbeddingsWorkerMessage,
   EmbeddingsWorkerResponse,
 } from "./workers/embeddingsWorker";
-import { cos_sim, pipeline } from "@xenova/transformers";
+
 import type { ReductionWorkerMessage } from "./workers/reductionWorker";
 import ScatterGraph from "./ScatterGraph";
 import useSentiment from "./useSentiment";
@@ -77,40 +77,10 @@ export default function ScatterTool() {
     embeddingsWorker.onmessage = async (
       e: MessageEvent<EmbeddingsWorkerResponse>
     ) => {
-      const { embeddings } = e.data;
-      nextParsedText.forEach(
-        (response, i) => (response.embedding = embeddings[i])
-      );
+      const { mergedRows } = e.data;
+      const nextParsedText = mergedRows;
       $rows.set(nextParsedText);
       embeddingsWorker.terminate();
-
-      //Remerge sentences with similar embeddings
-      setStatus(Status.MERGING);
-      const extractor = await pipeline(
-        "feature-extraction",
-        "Xenova/gte-small"
-      );
-      for (let i = nextParsedText.length - 1; i > 0; i--) {
-        const thisRow = nextParsedText[i];
-        for (let x = i - 1; x >= 0; x--) {
-          const targetRow = nextParsedText[x];
-          if (targetRow.id !== thisRow.id) break;
-          const sim = cos_sim(thisRow.embedding!, targetRow.embedding!); //Should come back and validate that the embeddings are there properly...
-          if (sim > 0.4) {
-            targetRow.text += " " + thisRow.text;
-            const embeddingTensor = await extractor(targetRow.text, {
-              //Could pull this out of the loop later to make things faster
-              pooling: "mean",
-              normalize: true,
-            });
-            const [embedding] = embeddingTensor.tolist() as number[][];
-            targetRow.embedding = embedding;
-            nextParsedText.splice(i, 1);
-            break;
-          }
-        }
-      }
-      $rows.set([...nextParsedText]);
 
       //Reduce to 2D for scattergraph
       setStatus(Status.MAPPING);
