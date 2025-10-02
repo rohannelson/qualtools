@@ -5,6 +5,10 @@ export const $rows = atom<Row[]>([]);
 
 export const $status = atom<Status>(Status.PENDING);
 
+export const $stakeholders = atom<string[]>([]);
+
+export const $rootsFreq = atom<[string, number][]>([]);
+
 export const $filters = atom<RowFilters>({
   stakeholder: [],
   sentiment: "all",

@@ -5,8 +5,11 @@ import type {
   SentimentWorkerResponse,
 } from "../workers/sentimentWorker";
 import { $rows, $status } from "../stores";
+import { useStore } from "@nanostores/react";
 
-export default function useSentiment({ parsedText }: { parsedText: Row[] }) {
+export default function useSentiment() {
+  const parsedText = useStore($rows);
+
   //Sentiment analysis
   function getSentiment() {
     $status.set(Status.SENTIMENT);
@@ -27,6 +30,7 @@ export default function useSentiment({ parsedText }: { parsedText: Row[] }) {
         response.sentiment = sentiments[i];
       });
       $rows.set([...parsedText]);
+      $status.set(Status.COMPLETE);
       sentimentWorker.terminate();
     };
   }

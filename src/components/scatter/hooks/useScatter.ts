@@ -8,7 +8,7 @@ import type {
 } from "../workers/embeddingsWorker";
 
 import type { ReductionWorkerMessage } from "../workers/reductionWorker";
-import { $rows } from "../stores";
+import { $rootsFreq, $rows, $stakeholders } from "../stores";
 import { $status } from "../stores";
 
 export default function useScatter({
@@ -16,9 +16,6 @@ export default function useScatter({
 }: {
   textareaRef: React.RefObject<HTMLTextAreaElement | null>;
 }) {
-  const [rootsFreq, setRootsFreq] = useState<[string, number][]>([]);
-  const [stakeholders, setStakeholders] = useState<string[]>([]);
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
@@ -49,7 +46,7 @@ export default function useScatter({
     }
 
     const nextParsedText = parseText(rawText != "" ? rawText : RESPONSES);
-    setStakeholders(
+    $stakeholders.set(
       Array.from(
         new Set(nextParsedText.map((r) => r.stakeholder.trim()))
       ).sort()
@@ -135,7 +132,7 @@ export default function useScatter({
         const nextRootsFreqSorted = Object.entries(nextRootsFreq).sort(
           (a, b) => b[1] - a[1]
         );
-        setRootsFreq(nextRootsFreqSorted);
+        $rootsFreq.set(nextRootsFreqSorted);
         $status.set(Status.COMPLETE);
       };
     };

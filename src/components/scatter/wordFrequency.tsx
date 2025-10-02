@@ -1,15 +1,10 @@
-import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import { useState } from "react";
 import type { WordsFreq } from "./types";
+import { $rootsFreq } from "./stores";
 
-export default function WordFrequency({
-  rootsFreq,
-  setRootsFreq,
-}: {
-  rootsFreq: WordsFreq;
-  setRootsFreq: Dispatch<SetStateAction<WordsFreq>>;
-}) {
+export default function WordFrequency({ rootsFreq }: { rootsFreq: WordsFreq }) {
   function sortByFrequency() {
-    setRootsFreq([...rootsFreq].sort((a, b) => b[1] - a[1]));
+    $rootsFreq.set([...rootsFreq].sort((a, b) => b[1] - a[1]));
   }
   const [alphabetical, setAlphabetical] = useState(false);
   return (
@@ -22,7 +17,7 @@ export default function WordFrequency({
         type="button"
         onClick={() => {
           !alphabetical
-            ? setRootsFreq([...rootsFreq].sort())
+            ? $rootsFreq.set([...rootsFreq].sort())
             : sortByFrequency();
           setAlphabetical(!alphabetical);
         }}

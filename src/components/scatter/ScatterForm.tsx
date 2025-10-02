@@ -1,16 +1,8 @@
-import { useStore } from "@nanostores/react";
-import { $rows } from "./stores";
-import useSentiment from "./hooks/useSentiment";
 import { useRef } from "react";
 import useScatter from "./hooks/useScatter";
 
 export default function ScatterForm() {
-  const parsedText = useStore($rows);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-
-  const getSentiment = useSentiment({
-    parsedText,
-  });
 
   const handleSubmit = useScatter({ textareaRef: textareaRef });
 
@@ -29,13 +21,6 @@ export default function ScatterForm() {
             className="px-4 py-2 bg-blue-500 text-white rounded w-[120px]"
           >
             Submit
-          </button>
-          <button
-            type="button"
-            onClick={getSentiment}
-            className="px-4 py-2 bg-blue-500 text-white rounded w-[160px]"
-          >
-            Get sentiment
           </button>
         </div>
       </form>
