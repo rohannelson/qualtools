@@ -1,7 +1,7 @@
 import { useStore } from "@nanostores/react";
 import { $filteredRows } from "./stores";
 
-export default function ResultsTable({
+export default function ScatterTable({
   selectedIds,
 }: {
   selectedIds: Set<string>;

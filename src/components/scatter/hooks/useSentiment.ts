@@ -1,23 +1,17 @@
 import type { Dispatch, SetStateAction } from "react";
-import { Status, type Row } from "./types";
+import { Status, type Row } from "../types";
 import type {
   SentimentWorkerMessage,
   SentimentWorkerResponse,
-} from "./workers/sentimentWorker";
-import { $rows } from "./stores";
+} from "../workers/sentimentWorker";
+import { $rows, $status } from "../stores";
 
-export default function useSentiment({
-  setStatus,
-  parsedText,
-}: {
-  setStatus: Dispatch<SetStateAction<Status>>;
-  parsedText: Row[];
-}) {
+export default function useSentiment({ parsedText }: { parsedText: Row[] }) {
   //Sentiment analysis
   function getSentiment() {
-    setStatus(Status.SENTIMENT);
+    $status.set(Status.SENTIMENT);
     const sentimentWorker = new Worker(
-      new URL("./workers/sentimentWorker.ts", import.meta.url),
+      new URL("../workers/sentimentWorker.ts", import.meta.url),
       {
         type: "module",
       }

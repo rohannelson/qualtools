@@ -3,7 +3,7 @@ import { $filters } from "./stores";
 import type { Sentiment } from "./types";
 import type { Dispatch, SetStateAction } from "react";
 
-export default function GraphFilters({
+export default function ScatterFilters({
   stakeholders,
   setSelectedIds,
 }: {

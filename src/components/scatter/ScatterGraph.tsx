@@ -1,5 +1,4 @@
 import { useRef, useState, type Dispatch, type SetStateAction } from "react";
-import type { Row } from "./types";
 import { Scatter } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -9,10 +8,10 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { oneToHex } from "../lib/utils";
-import GraphFilters from "./GraphFilters";
+import { oneToHex } from "../../lib/utils";
 import { useStore } from "@nanostores/react";
 import { $filteredRows } from "./stores";
+import ScatterFilters from "./ScatterFilters";
 
 ChartJS.register(ScatterController, LinearScale, PointElement, Tooltip, Legend);
 
@@ -259,7 +258,7 @@ export default function ScatterGraph({
             <h2 className="text-xl font-semibold mb-2 ml-8">
               2D Embedding Scatterplot
             </h2>
-            <GraphFilters
+            <ScatterFilters
               stakeholders={stakeholders}
               setSelectedIds={setSelectedIds}
             />

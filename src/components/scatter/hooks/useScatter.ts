@@ -1,26 +1,21 @@
 import { useRef, useState } from "react";
-import { compromiseStopTags, RESPONSES } from "./consts";
-import { Status, type CompromiseTerm, type Row } from "./types";
+import { compromiseStopTags, RESPONSES } from "../consts";
+import { Status, type CompromiseTerm, type Row } from "../types";
 import nlp from "compromise";
-import ResultsTable from "./ResultsTable";
 import type {
   EmbeddingsWorkerMessage,
   EmbeddingsWorkerResponse,
-} from "./workers/embeddingsWorker";
+} from "../workers/embeddingsWorker";
 
-import type { ReductionWorkerMessage } from "./workers/reductionWorker";
-import ScatterGraph from "./ScatterGraph";
-import useSentiment from "./useSentiment";
-import WordFrequency from "./wordFrequency";
-import { useStore } from "@nanostores/react";
-import { $rows } from "./stores";
+import type { ReductionWorkerMessage } from "../workers/reductionWorker";
+import { $rows } from "../stores";
+import { $status } from "../stores";
 
-export default function ScatterTool() {
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const [status, setStatus] = useState<Status>(Status.PENDING);
-  const parsedText = useStore($rows);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [statusError, setStatusError] = useState<string>("");
+export default function useScatter({
+  textareaRef,
+}: {
+  textareaRef: React.RefObject<HTMLTextAreaElement | null>;
+}) {
   const [rootsFreq, setRootsFreq] = useState<[string, number][]>([]);
   const [stakeholders, setStakeholders] = useState<string[]>([]);
 
@@ -28,7 +23,7 @@ export default function ScatterTool() {
     e.preventDefault();
 
     //Parse text from user input
-    setStatus(Status.PARSING);
+    $status.set(Status.PARSING);
 
     const rawText = textareaRef.current?.value ?? "";
 
@@ -62,9 +57,9 @@ export default function ScatterTool() {
     $rows.set(nextParsedText);
 
     //Generate embeddings via worker
-    setStatus(Status.EMBEDDING);
+    $status.set(Status.EMBEDDING);
     const embeddingsWorker = new Worker(
-      new URL("./workers/embeddingsWorker.ts", import.meta.url),
+      new URL("../workers/embeddingsWorker.ts", import.meta.url),
       {
         type: "module",
       }
@@ -83,9 +78,9 @@ export default function ScatterTool() {
       embeddingsWorker.terminate();
 
       //Reduce to 2D for scattergraph
-      setStatus(Status.MAPPING);
+      $status.set(Status.MAPPING);
       const reductionWorker = new Worker(
-        new URL("./workers/reductionWorker.ts", import.meta.url),
+        new URL("../workers/reductionWorker.ts", import.meta.url),
         {
           type: "module",
         }
@@ -102,7 +97,7 @@ export default function ScatterTool() {
 
         if (error) {
           console.error("UMAP Worker error:", error);
-          setStatus(Status.ERROR);
+          $status.set(Status.ERROR);
           reductionWorker.terminate();
           return;
         }
@@ -117,7 +112,7 @@ export default function ScatterTool() {
         reductionWorker.terminate();
 
         //Compute sentence roots
-        setStatus(Status.STEMMING);
+        $status.set(Status.STEMMING);
         const nextRootsFreq: Record<string, number> = {};
         nextParsedText.forEach((row, i) => {
           const doc = nlp(row.text);
@@ -141,67 +136,9 @@ export default function ScatterTool() {
           (a, b) => b[1] - a[1]
         );
         setRootsFreq(nextRootsFreqSorted);
-        setStatus(Status.COMPLETE);
+        $status.set(Status.COMPLETE);
       };
     };
   }
-
-  const getSentiment = useSentiment({
-    setStatus,
-    parsedText,
-  });
-  return (
-    <div className="m-8">
-      <div className="grid grid-cols-3 gap-4 min-h-screen">
-        <div>
-          <h1 className="text-2xl font-bold mb-2">Open Text Qual Tool</h1>
-          <form onSubmit={handleSubmit} className="flex flex-col mb-4">
-            <textarea
-              ref={textareaRef}
-              className="h-36 border border-gray-400 rounded-md px-2 py-1 mb-2"
-              placeholder="Paste open text responses here"
-            />
-            <div className="flex gap-4">
-              <button
-                type="submit"
-                className="px-4 py-2 bg-blue-500 text-white rounded w-[120px]"
-              >
-                Submit
-              </button>
-              <button
-                type="button"
-                onClick={getSentiment}
-                className="px-4 py-2 bg-blue-500 text-white rounded w-[160px]"
-              >
-                Get sentiment
-              </button>
-            </div>
-            <p className="text-sm mt-1">
-              {status}
-              {status === Status.ERROR && statusError}
-            </p>
-          </form>
-
-          <ResultsTable selectedIds={selectedIds} />
-        </div>
-        <div className="col-span-2">
-          <div>
-            <ScatterGraph
-              selectedIds={selectedIds}
-              setSelectedIds={setSelectedIds}
-              stakeholders={stakeholders}
-            />
-            <div className="pt-2">
-              {rootsFreq?.[0] && (
-                <WordFrequency
-                  rootsFreq={rootsFreq}
-                  setRootsFreq={setRootsFreq}
-                />
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  return handleSubmit;
 }

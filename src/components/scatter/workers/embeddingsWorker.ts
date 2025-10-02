@@ -1,6 +1,6 @@
 import { cos_sim, env, pipeline } from "@xenova/transformers";
 import type { Row } from "../types";
-import { chunkArray } from "../../lib/utils";
+import { chunkArray } from "../../../lib/utils";
 
 export interface EmbeddingsWorkerMessage {
   responses: Row[];
@@ -31,10 +31,8 @@ self.onmessage = async (e: MessageEvent<EmbeddingsWorkerMessage>) => {
   }
 
   const embeddings = chunkedEmbeddings.map((embeds) => embeds).flat();
-  
-  responses.forEach(
-    (response, i) => (response.embedding = embeddings[i])
-  );
+
+  responses.forEach((response, i) => (response.embedding = embeddings[i]));
 
   for (let i = responses.length - 1; i > 0; i--) {
     const thisRow = responses[i];

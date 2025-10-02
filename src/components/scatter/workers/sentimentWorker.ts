@@ -4,7 +4,7 @@ import {
   type TextClassificationOutput,
 } from "@xenova/transformers";
 import type { Row } from "../types";
-import { chunkArray } from "../../lib/utils";
+import { chunkArray } from "../../../lib/utils";
 
 export interface SentimentWorkerMessage {
   responses: Row[];

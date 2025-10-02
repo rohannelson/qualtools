@@ -1,7 +1,9 @@
 import { atom, computed } from "nanostores";
-import type { Row, RowFilters } from "./types";
+import { Status, type Row, type RowFilters } from "./types";
 
 export const $rows = atom<Row[]>([]);
+
+export const $status = atom<Status>(Status.PENDING);
 
 export const $filters = atom<RowFilters>({
   stakeholder: [],
