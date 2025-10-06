@@ -31,10 +31,8 @@ self.onmessage = async (e: MessageEvent<EmbeddingsWorkerMessage>) => {
   }
 
   const embeddings = chunkedEmbeddings.map((embeds) => embeds).flat();
-  
-  responses.forEach(
-    (response, i) => (response.embedding = embeddings[i])
-  );
+
+  responses.forEach((response, i) => (response.embedding = embeddings[i]));
 
   for (let i = responses.length - 1; i > 0; i--) {
     const thisRow = responses[i];
@@ -42,7 +40,7 @@ self.onmessage = async (e: MessageEvent<EmbeddingsWorkerMessage>) => {
       const targetRow = responses[x];
       if (targetRow.id !== thisRow.id) break;
       const sim = cos_sim(thisRow.embedding!, targetRow.embedding!);
-      if (sim > 0.4) {
+      if (sim > 0.81) {
         targetRow.text += " " + thisRow.text;
         const embeddingTensor = await extractor(targetRow.text, {
           pooling: "mean",
