@@ -7,6 +7,16 @@ export default function ResultsTable({
   selectedIds: Set<string>;
 }) {
   const parsedText = useStore($filteredRows);
+
+  //define unique ids for uniqe count
+  const uniqueIds: Set<string> = new Set();
+  parsedText.forEach((item) => uniqueIds.add(item.id.toString()));
+
+  const uniqueSelectedIds: Set<string> = new Set();
+  for (const item of selectedIds) {
+    uniqueSelectedIds.add(item.split("-")[0]);
+  }
+
   return (
     <>
       {parsedText.length > 0 && (
@@ -14,6 +24,10 @@ export default function ResultsTable({
           <div className="flex justify-between items-center mb-2">
             <div className="flex w-full">
               <h2 className="font-semibold">Extracted Text (Selected)</h2>
+              <p className="ml-auto">
+                {selectedIds.size > 0 ? uniqueSelectedIds.size : uniqueIds.size}{" "}
+                responses
+              </p>
               <p className="ml-auto">
                 {selectedIds.size > 0 ? selectedIds.size : parsedText.length}{" "}
                 rows
