@@ -16,15 +16,15 @@ self.onmessage = async (e: MessageEvent<ReductionWorkerMessage>) => {
 
     //>120 requires PCA to reduce vector size, otherwise 'too much recursion' error.
     //Could turn this into a formula instead of manual conditional statements.
-    if (embeddings[0].length > 120) {
+    if (embeddings.length > 120) {
       let nComponents: number = 192;
       if (embeddings.length > 1920) {
         nComponents = 12;
-      } else if (embeddings[0].length > 960) {
+      } else if (embeddings.length > 960) {
         nComponents = 24;
-      } else if (embeddings[0].length > 480) {
+      } else if (embeddings.length > 480) {
         nComponents = 48;
-      } else if (embeddings[0].length > 240) {
+      } else if (embeddings.length > 240) {
         nComponents = 96;
       }
 
